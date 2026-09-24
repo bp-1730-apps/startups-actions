@@ -10,10 +10,17 @@
   };
   const STATUS_ORDER = ["open", "in_progress", "on_hold", "completed"];
 
+  const gateEl = document.getElementById("gate");
+  const gateInput = document.getElementById("gate-input");
+  const gateError = document.getElementById("gate-error");
+  const gateSubmit = document.getElementById("gate-submit");
+  const dashboardEl = document.getElementById("dashboard");
   const overviewRow = document.getElementById("overview-row");
   const linesGrid = document.getElementById("lines-grid");
   const refreshBtn = document.getElementById("refresh-btn");
+  const lockBtn = document.getElementById("lock-btn");
 
+  let dashboardKey = "";
   let allItems = [];
   const expandedCompleted = new Set();
   const openAddForm = new Set();
@@ -53,13 +60,57 @@
     ));
   }
 
+  // ---------- Gate ----------
+  function tryStoredKey() {
+    const stored = sessionStorage.getItem("sal_key");
+    if (stored) {
+      dashboardKey = stored;
+      unlock();
+    }
+  }
+
+  async function attemptUnlock(key) {
+    gateError.textContent = "";
+    gateSubmit.disabled = true;
+    gateSubmit.textContent = "Checking…";
+    try {
+      const data = await apiGet({ action: "list", key });
+      if (data && data.ok) {
+        dashboardKey = key;
+        sessionStorage.setItem("sal_key", key);
+        unlock();
+      } else {
+        gateError.textContent = "Wrong passcode. Try again.";
+      }
+    } catch (err) {
+      gateError.textContent = "Couldn't reach the backend. Check config.js.";
+    } finally {
+      gateSubmit.disabled = false;
+      gateSubmit.textContent = "Unlock";
+    }
+  }
+
+  function unlock() {
+    gateEl.style.display = "none";
+    dashboardEl.hidden = false;
+    loadData();
+  }
+
+  gateSubmit.addEventListener("click", () => attemptUnlock(gateInput.value.trim()));
+  gateInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") attemptUnlock(gateInput.value.trim());
+  });
+  lockBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("sal_key");
+    location.reload();
+  });
   refreshBtn.addEventListener("click", loadData);
 
   // ---------- Data ----------
   async function loadData() {
     linesGrid.innerHTML = '<div class="loading-note">Loading action list…</div>';
     try {
-      const data = await apiGet({ action: "list" });
+      const data = await apiGet({ action: "list", key: dashboardKey });
       if (!data.ok) throw new Error(data.error || "unknown error");
       allItems = data.items || [];
       render();
@@ -263,6 +314,7 @@
     try {
       const payload = {
         action: "create",
+        key: dashboardKey,
         line,
         type: fd.get("type") || "action",
         startedOnTime: "", // manually added from the dashboard, not a floor startup report
@@ -288,7 +340,7 @@
   async function onStatusChange(id, newStatus, selectEl) {
     selectEl.disabled = true;
     try {
-      const res = await apiPost({ action: "update", id, status: newStatus });
+      const res = await apiPost({ action: "update", key: dashboardKey, id, status: newStatus });
       if (!res.ok) throw new Error(res.error || "failed");
       await loadData();
     } catch (err) {
@@ -297,5 +349,5 @@
     }
   }
 
-  loadData();
+  tryStoredKey();
 })();

@@ -353,6 +353,39 @@ select.status-select {
   padding: 4px;
 }
 
+/* ---- Passcode gate ---- */
+.gate[hidden] { display: none !important; }
+
+.gate {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navy);
+}
+.gate-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 32px 28px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  text-align: center;
+}
+.gate-card h2 { margin: 0 0 4px; font-size: 18px; color: var(--navy); }
+.gate-card p { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
+.gate-card input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  text-align: center;
+  letter-spacing: 0.15em;
+}
+.gate-error { color: var(--status-overdue); font-size: 13px; min-height: 18px; margin-bottom: 4px; }
+
 /* ---- Report page ---- */
 .report-wrap {
   min-height: 100vh;

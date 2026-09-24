@@ -11,7 +11,19 @@
 </head>
 <body>
 
-<div id="dashboard">
+<!-- Passcode gate -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h2>Startups Action List</h2>
+    <p>Enter the dashboard passcode to continue.</p>
+    <input id="gate-input" type="password" autocomplete="off" placeholder="Passcode" />
+    <div class="gate-error" id="gate-error"></div>
+    <button class="btn btn-primary" style="width:100%" id="gate-submit">Unlock</button>
+  </div>
+</div>
+
+<!-- Dashboard (hidden until unlocked) -->
+<div id="dashboard" hidden>
   <div class="topbar">
     <div>
       <h1>Startups Action List</h1>
@@ -19,6 +31,7 @@
     </div>
     <div style="display:flex; gap:8px;">
       <button class="btn btn-ghost" id="refresh-btn">Refresh</button>
+      <button class="btn btn-ghost" id="lock-btn">Lock</button>
     </div>
   </div>
 
