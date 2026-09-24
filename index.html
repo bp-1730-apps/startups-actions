@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Startups Action List — Plant 1730</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="dashboard">
+  <div class="topbar">
+    <div>
+      <h1>Startups Action List</h1>
+      <div class="sub">Plant 1730 &middot; live from every line's startup report</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-ghost" id="refresh-btn">Refresh</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="overview-row" id="overview-row">
+      <!-- filled by dashboard.js -->
+    </div>
+
+    <div class="lines-grid" id="lines-grid">
+      <div class="loading-note">Loading action list…</div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

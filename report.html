@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Startup Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="report-wrap">
+  <div class="report-card">
+    <div class="report-head">
+      <div class="line-label">Startup Report</div>
+      <div class="line-name" id="line-name">—</div>
+    </div>
+    <div class="report-body" id="report-body">
+
+      <div id="no-line-notice" style="display:none; text-align:center; color:var(--muted); padding: 8px 0 4px;">
+        This link is missing a line. Ask your supervisor for the correct QR code / link for your line
+        (it should end in <code>?line=2A</code>, <code>?line=PL1</code>, etc).
+      </div>
+
+      <div id="question-step">
+        <div class="question">Did this line start on time?</div>
+        <div class="yesno-row">
+          <button class="yesno-btn yes" id="btn-yes">Yes</button>
+          <button class="yesno-btn no" id="btn-no">No</button>
+        </div>
+      </div>
+
+      <form class="report-form" id="issue-form">
+        <div>
+          <label>What happened? (required)</label>
+          <textarea name="action" required placeholder="e.g. No production supervisor present at startup"></textarea>
+        </div>
+        <div class="field-row">
+          <div>
+            <label>Area / Station</label>
+            <input type="text" name="area" placeholder="e.g. Room 2, Mixer 2" />
+          </div>
+          <div>
+            <label>Your name</label>
+            <input type="text" name="owner" placeholder="Who's reporting this" />
+          </div>
+        </div>
+        <div>
+          <label>Is this a quick action or a longer project?</label>
+          <div class="type-toggle">
+            <button type="button" class="active" data-type="action">Action</button>
+            <button type="button" data-type="project">Project</button>
+          </div>
+          <input type="hidden" name="type" value="action" />
+        </div>
+        <div>
+          <label>Expected completion (optional)</label>
+          <input type="date" name="expectedCompletion" />
+        </div>
+        <div>
+          <label>Comments</label>
+          <textarea name="comments" placeholder="Anything else worth noting"></textarea>
+        </div>
+        <div class="error-banner" id="error-banner"></div>
+        <div class="submit-row">
+          <button class="btn btn-primary" type="submit" id="submit-btn">Submit report</button>
+        </div>
+      </form>
+
+      <div class="thankyou" id="thankyou" style="display:none;">
+        <div class="big-check">✓</div>
+        <h3 id="thankyou-title">Thanks — report submitted</h3>
+        <p id="thankyou-sub">Your report has been logged for this line.</p>
+        <button class="btn" id="report-again-btn">Report another issue</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="report.js"></script>
+</body>
+</html>
