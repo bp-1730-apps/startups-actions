@@ -14,6 +14,6 @@
   page is open to anyone with its link.
 */
 const CONFIG = {
-  API_BASE_URL: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
+  API_BASE_URL: "https://script.google.com/macros/s/AKfycbyqniiozwFBpNxL30nsvdINA9eseiiMUIokMjTCzGO-SB-VFFh9du_2o2be2B6vZFTB4A/exec",
   LINES: ["2A", "PXM6", "PL1", "PL2", "2E"],
 };
