@@ -15,5 +15,5 @@
 */
 const CONFIG = {
   API_BASE_URL: "https://script.google.com/macros/s/AKfycbyqniiozwFBpNxL30nsvdINA9eseiiMUIokMjTCzGO-SB-VFFh9du_2o2be2B6vZFTB4A/exec",
-  LINES: ["2A", "PXM6", "PL1", "PL2", "2E"],
+  LINES: ["2A", "PXM6", "MP4", "PL1", "PL2", "2E"],
 };
