@@ -10,20 +10,14 @@
   };
   const STATUS_ORDER = ["open", "in_progress", "on_hold", "completed"];
 
-  const gateEl = document.getElementById("gate");
-  const gateInput = document.getElementById("gate-input");
-  const gateError = document.getElementById("gate-error");
-  const gateSubmit = document.getElementById("gate-submit");
-  const dashboardEl = document.getElementById("dashboard");
   const overviewRow = document.getElementById("overview-row");
   const linesGrid = document.getElementById("lines-grid");
   const refreshBtn = document.getElementById("refresh-btn");
-  const lockBtn = document.getElementById("lock-btn");
 
-  let dashboardKey = "";
   let allItems = [];
   const expandedCompleted = new Set();
   const openAddForm = new Set();
+  const editingItems = new Set();
 
   function apiUrl(params) {
     const url = new URL(CONFIG.API_BASE_URL);
@@ -60,57 +54,13 @@
     ));
   }
 
-  // ---------- Gate ----------
-  function tryStoredKey() {
-    const stored = sessionStorage.getItem("sal_key");
-    if (stored) {
-      dashboardKey = stored;
-      unlock();
-    }
-  }
-
-  async function attemptUnlock(key) {
-    gateError.textContent = "";
-    gateSubmit.disabled = true;
-    gateSubmit.textContent = "Checking…";
-    try {
-      const data = await apiGet({ action: "list", key });
-      if (data && data.ok) {
-        dashboardKey = key;
-        sessionStorage.setItem("sal_key", key);
-        unlock();
-      } else {
-        gateError.textContent = "Wrong passcode. Try again.";
-      }
-    } catch (err) {
-      gateError.textContent = "Couldn't reach the backend. Check config.js.";
-    } finally {
-      gateSubmit.disabled = false;
-      gateSubmit.textContent = "Unlock";
-    }
-  }
-
-  function unlock() {
-    gateEl.style.display = "none";
-    dashboardEl.hidden = false;
-    loadData();
-  }
-
-  gateSubmit.addEventListener("click", () => attemptUnlock(gateInput.value.trim()));
-  gateInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") attemptUnlock(gateInput.value.trim());
-  });
-  lockBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("sal_key");
-    location.reload();
-  });
   refreshBtn.addEventListener("click", loadData);
 
   // ---------- Data ----------
   async function loadData() {
     linesGrid.innerHTML = '<div class="loading-note">Loading action list…</div>';
     try {
-      const data = await apiGet({ action: "list", key: dashboardKey });
+      const data = await apiGet({ action: "list" });
       if (!data.ok) throw new Error(data.error || "unknown error");
       allItems = data.items || [];
       render();
@@ -206,6 +156,24 @@
     card.querySelectorAll("select.status-select").forEach((sel) => {
       sel.addEventListener("change", () => onStatusChange(sel.dataset.id, sel.value, sel));
     });
+    card.querySelectorAll("[data-start-edit]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        editingItems.add(btn.dataset.startEdit);
+        render();
+      });
+    });
+    card.querySelectorAll("[data-cancel-edit]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        editingItems.delete(btn.dataset.cancelEdit);
+        render();
+      });
+    });
+    card.querySelectorAll("form.edit-item-form").forEach((form) => {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        submitEditForm(form.dataset.id, form);
+      });
+    });
     const toggleCompletedBtn = card.querySelector("[data-toggle-completed]");
     if (toggleCompletedBtn) {
       toggleCompletedBtn.addEventListener("click", () => {
@@ -232,6 +200,8 @@
   }
 
   function renderItemCard(item) {
+    if (editingItems.has(item.id)) return renderEditForm(item);
+
     const overdue = isOverdue(item);
     const daysUntil = item.expectedCompletion ? daysBetween(todayISO(), item.expectedCompletion) : null;
     let daysHtml = "";
@@ -261,9 +231,52 @@
           <select class="status-select status-${item.status}" data-id="${item.id}">
             ${STATUS_ORDER.map((s) => `<option value="${s}" ${s === item.status ? "selected" : ""}>${STATUS_LABELS[s]}</option>`).join("")}
           </select>
+          <button type="button" class="edit-link" data-start-edit="${item.id}">Edit</button>
           ${daysHtml}
         </div>
       </div>
+    `;
+  }
+
+  function renderEditForm(item) {
+    return `
+      <form class="add-form open edit-item-form" data-id="${item.id}">
+        <div class="field-row">
+          <div>
+            <label>Area</label>
+            <input type="text" name="area" value="${escapeHtml(item.area)}" placeholder="e.g. Mixer 2" />
+          </div>
+          <div>
+            <label>Owner</label>
+            <input type="text" name="owner" value="${escapeHtml(item.owner)}" placeholder="Who's on it" />
+          </div>
+        </div>
+        <div>
+          <label>Action needed</label>
+          <textarea name="action" rows="2" required>${escapeHtml(item.action)}</textarea>
+        </div>
+        <div class="field-row">
+          <div>
+            <label>Expected completion</label>
+            <input type="date" name="expectedCompletion" value="${escapeHtml(item.expectedCompletion)}" />
+          </div>
+          <div>
+            <label>Type</label>
+            <select name="type">
+              <option value="action" ${item.type !== "project" ? "selected" : ""}>Action</option>
+              <option value="project" ${item.type === "project" ? "selected" : ""}>Project</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Comments</label>
+          <textarea name="comments" rows="2">${escapeHtml(item.comments)}</textarea>
+        </div>
+        <div class="edit-actions">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <button class="btn" type="button" data-cancel-edit="${item.id}">Cancel</button>
+        </div>
+      </form>
     `;
   }
 
@@ -314,7 +327,6 @@
     try {
       const payload = {
         action: "create",
-        key: dashboardKey,
         line,
         type: fd.get("type") || "action",
         startedOnTime: "", // manually added from the dashboard, not a floor startup report
@@ -337,10 +349,37 @@
     }
   }
 
+  async function submitEditForm(id, formEl) {
+    const fd = new FormData(formEl);
+    const saveBtn = formEl.querySelector("button[type=submit]");
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving…";
+    try {
+      const payload = {
+        action: "update",
+        id,
+        action_text: fd.get("action") || "",
+        area: fd.get("area") || "",
+        owner: fd.get("owner") || "",
+        expectedCompletion: fd.get("expectedCompletion") || "",
+        comments: fd.get("comments") || "",
+        type: fd.get("type") || "action",
+      };
+      const res = await apiPost(payload);
+      if (!res.ok) throw new Error(res.error || "failed");
+      editingItems.delete(id);
+      await loadData();
+    } catch (err) {
+      alert("Couldn't save changes: " + err.message);
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save";
+    }
+  }
+
   async function onStatusChange(id, newStatus, selectEl) {
     selectEl.disabled = true;
     try {
-      const res = await apiPost({ action: "update", key: dashboardKey, id, status: newStatus });
+      const res = await apiPost({ action: "update", id, status: newStatus });
       if (!res.ok) throw new Error(res.error || "failed");
       await loadData();
     } catch (err) {
@@ -349,5 +388,5 @@
     }
   }
 
-  tryStoredKey();
+  loadData();
 })();

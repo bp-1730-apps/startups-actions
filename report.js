@@ -7,6 +7,7 @@
 
   const lineNameEl = document.getElementById("line-name");
   const noLineNotice = document.getElementById("no-line-notice");
+  const runningStep = document.getElementById("running-step");
   const questionStep = document.getElementById("question-step");
   const issueForm = document.getElementById("issue-form");
   const thankyou = document.getElementById("thankyou");
@@ -14,6 +15,8 @@
   const thankyouSub = document.getElementById("thankyou-sub");
   const errorBanner = document.getElementById("error-banner");
   const submitBtn = document.getElementById("submit-btn");
+  const btnRunningYes = document.getElementById("btn-running-yes");
+  const btnRunningNo = document.getElementById("btn-running-no");
   const btnYes = document.getElementById("btn-yes");
   const btnNo = document.getElementById("btn-no");
   const reportAgainBtn = document.getElementById("report-again-btn");
@@ -23,7 +26,7 @@
   if (!line) {
     lineNameEl.textContent = "No line specified";
     noLineNotice.style.display = "block";
-    questionStep.style.display = "none";
+    runningStep.style.display = "none";
     return;
   }
   lineNameEl.textContent = line;
@@ -51,6 +54,7 @@
   }
 
   function showThankYou(title, sub) {
+    runningStep.style.display = "none";
     questionStep.style.display = "none";
     issueForm.classList.remove("open");
     thankyou.style.display = "block";
@@ -58,6 +62,39 @@
     thankyouSub.textContent = sub;
   }
 
+  // ---------- Step 1: does the line run today? ----------
+  btnRunningYes.addEventListener("click", () => {
+    runningStep.style.display = "none";
+    questionStep.style.display = "block";
+  });
+
+  btnRunningNo.addEventListener("click", async () => {
+    btnRunningYes.disabled = true;
+    btnRunningNo.disabled = true;
+    try {
+      const res = await submitReport({
+        action: "create",
+        line,
+        type: "action",
+        startedOnTime: "", // not applicable — line isn't running today
+        startDate: todayISO(),
+        area: "",
+        action_text: "Line not running today",
+        owner: "",
+        expectedCompletion: "",
+        status: "completed",
+        comments: "",
+      });
+      if (!res.ok) throw new Error(res.error || "failed");
+      showThankYou("Thanks — noted", "Have a good day.");
+    } catch (err) {
+      btnRunningYes.disabled = false;
+      btnRunningNo.disabled = false;
+      alert("Couldn't submit: " + err.message + ". Check your connection and try again.");
+    }
+  });
+
+  // ---------- Step 2: did it start on time? ----------
   btnYes.addEventListener("click", async () => {
     btnYes.disabled = true;
     btnNo.disabled = true;
@@ -139,7 +176,10 @@
     typeHidden.value = "action";
     thankyou.style.display = "none";
     issueForm.classList.remove("open");
-    questionStep.style.display = "block";
+    questionStep.style.display = "none";
+    runningStep.style.display = "block";
+    btnRunningYes.disabled = false;
+    btnRunningNo.disabled = false;
     btnYes.disabled = false;
     btnNo.disabled = false;
   });

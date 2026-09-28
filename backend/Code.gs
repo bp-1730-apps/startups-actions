@@ -6,31 +6,28 @@
  * SET UP (one time):
  *   1. Create a new Google Sheet (any name). Open Extensions > Apps Script.
  *   2. Delete anything in the editor and paste this whole file in.
- *   3. Change DASHBOARD_KEY below to a passcode of your choosing.
- *      It must match CONFIG.DASHBOARD_KEY in config.js exactly.
- *   4. Run the "setup" function once (select it in the dropdown at the
+ *   3. Run the "setup" function once (select it in the dropdown at the
  *      top of the editor, click Run). Approve the permissions prompt.
  *      This creates the "Actions" tab with the right headers.
- *   5. Click Deploy > New deployment > gear icon > Web app.
+ *   4. Click Deploy > New deployment > gear icon > Web app.
  *        - Execute as: Me
  *        - Who has access: Anyone
  *      Click Deploy, authorize again if asked, then copy the "Web app URL".
- *   6. Paste that URL into API_BASE_URL in config.js.
+ *   5. Paste that URL into API_BASE_URL in config.js.
  *
  * WHEN YOU EDIT THIS FILE LATER: you must create a NEW deployment (or
  * use Deploy > Manage deployments > edit > New version) for changes to
  * go live — saving alone does not update the running web app.
  *
- * SECURITY NOTE: "create" (floor reports) is intentionally open to
- * anyone with the report link — that's the point, no login for the
- * floor. "list" and "update" require DASHBOARD_KEY, which is what
- * gates the management dashboard. This is a light deterrent, not real
- * security — anyone who learns the key can read/edit everything, and
- * anyone with the Sheet's own edit link can bypass the API entirely.
- * Don't put anything sensitive in this sheet.
+ * SECURITY NOTE: there is no passcode anywhere in this app. Both the
+ * dashboard (list/update) and the floor report page (create) are open
+ * to anyone with the link. Anyone who has the dashboard link can view
+ * and edit every line's action list, and anyone with the Sheet's own
+ * edit link can bypass the API entirely. Don't put anything sensitive
+ * in this sheet, and treat the dashboard link itself as something to
+ * only share with people who should be able to edit the data.
  */
 
-const DASHBOARD_KEY = "01730"; // must match config.js
 const SHEET_NAME = "Actions";
 const HEADERS = [
   "id", "line", "type", "startedOnTime", "startDate", "area",
@@ -127,11 +124,24 @@ function updateRow_(body) {
   }
   if (targetRow === -1) throw new Error("not found");
 
-  const updatable = ["status", "area", "action", "owner", "expectedCompletion", "comments", "type"];
-  updatable.forEach((field) => {
-    if (body[field] !== undefined) {
-      const col = HEADERS.indexOf(field) + 1;
-      sheet.getRange(targetRow, col).setValue(body[field]);
+  // Map payload keys -> sheet column names. "action_text" (not "action") holds
+  // the item description here, because "action" is already used as the
+  // dispatch verb ("create"/"update") in the request body — reusing it as a
+  // field name would mean every update silently overwrote the description
+  // with the literal word "update".
+  const fieldMap = {
+    status: "status",
+    area: "area",
+    action_text: "action",
+    owner: "owner",
+    expectedCompletion: "expectedCompletion",
+    comments: "comments",
+    type: "type",
+  };
+  Object.keys(fieldMap).forEach((bodyKey) => {
+    if (body[bodyKey] !== undefined) {
+      const col = HEADERS.indexOf(fieldMap[bodyKey]) + 1;
+      sheet.getRange(targetRow, col).setValue(body[bodyKey]);
     }
   });
   const updatedAtCol = HEADERS.indexOf("updatedAt") + 1;
@@ -142,7 +152,6 @@ function doGet(e) {
   try {
     const action = e.parameter.action;
     if (action === "list") {
-      if (e.parameter.key !== DASHBOARD_KEY) return jsonOutput_({ ok: false, error: "unauthorized" });
       return jsonOutput_({ ok: true, items: listRows_(e.parameter.line || null) });
     }
     return jsonOutput_({ ok: false, error: "unknown action" });
@@ -162,7 +171,6 @@ function doPost(e) {
       return jsonOutput_({ ok: true, id: id });
     }
     if (body.action === "update") {
-      if (body.key !== DASHBOARD_KEY) return jsonOutput_({ ok: false, error: "unauthorized" });
       updateRow_(body);
       return jsonOutput_({ ok: true });
     }

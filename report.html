@@ -24,7 +24,15 @@
         (it should end in <code>?line=2A</code>, <code>?line=PL1</code>, etc).
       </div>
 
-      <div id="question-step">
+      <div id="running-step">
+        <div class="question">Does this line run today?</div>
+        <div class="yesno-row">
+          <button class="yesno-btn yes" id="btn-running-yes">Yes</button>
+          <button class="yesno-btn no" id="btn-running-no">No</button>
+        </div>
+      </div>
+
+      <div id="question-step" style="display:none;">
         <div class="question">Did this line start on time?</div>
         <div class="yesno-row">
           <button class="yesno-btn yes" id="btn-yes">Yes</button>
