@@ -22,6 +22,8 @@
   const reportAgainBtn = document.getElementById("report-again-btn");
   const typeButtons = document.querySelectorAll(".type-toggle button");
   const typeHidden = issueForm.querySelector('input[name="type"]');
+  const moreDetailsToggle = document.getElementById("more-details-toggle");
+  const moreDetails = document.getElementById("more-details");
 
   if (!line) {
     lineNameEl.textContent = "No line specified";
@@ -126,6 +128,11 @@
     issueForm.classList.add("open");
   });
 
+  moreDetailsToggle.addEventListener("click", () => {
+    const open = moreDetails.classList.toggle("open");
+    moreDetailsToggle.textContent = open ? "− Hide details" : "+ Add more details (optional)";
+  });
+
   typeButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       typeButtons.forEach((b) => b.classList.remove("active"));
@@ -174,6 +181,8 @@
     typeButtons.forEach((b) => b.classList.remove("active"));
     typeButtons[0].classList.add("active");
     typeHidden.value = "action";
+    moreDetails.classList.remove("open");
+    moreDetailsToggle.textContent = "+ Add more details (optional)";
     thankyou.style.display = "none";
     issueForm.classList.remove("open");
     questionStep.style.display = "none";

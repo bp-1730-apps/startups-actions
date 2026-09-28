@@ -491,6 +491,25 @@ select.status-select {
 .submit-row { margin-top: 4px; }
 .submit-row .btn { width: 100%; padding: 13px; font-size: 15.5px; }
 
+.more-details-toggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--teal);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 0;
+  margin-top: -4px;
+}
+
+.more-details {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.more-details.open { display: flex; }
+
 .thankyou {
   text-align: center;
   padding: 12px 4px 4px;

@@ -43,34 +43,40 @@
       <form class="report-form" id="issue-form">
         <div>
           <label>What happened? (required)</label>
-          <textarea name="action" required placeholder="e.g. No production supervisor present at startup"></textarea>
+          <textarea name="action" required placeholder="e.g. No production supervisor present at startup" autofocus></textarea>
         </div>
-        <div class="field-row">
-          <div>
-            <label>Area / Station</label>
-            <input type="text" name="area" placeholder="e.g. Room 2, Mixer 2" />
+
+        <button type="button" class="more-details-toggle" id="more-details-toggle">+ Add more details (optional)</button>
+
+        <div class="more-details" id="more-details">
+          <div class="field-row">
+            <div>
+              <label>Area / Station</label>
+              <input type="text" name="area" placeholder="e.g. Room 2, Mixer 2" />
+            </div>
+            <div>
+              <label>Your name</label>
+              <input type="text" name="owner" placeholder="Who's reporting this" />
+            </div>
           </div>
           <div>
-            <label>Your name</label>
-            <input type="text" name="owner" placeholder="Who's reporting this" />
+            <label>Is this a quick action or a longer project?</label>
+            <div class="type-toggle">
+              <button type="button" class="active" data-type="action">Action</button>
+              <button type="button" data-type="project">Project</button>
+            </div>
+            <input type="hidden" name="type" value="action" />
+          </div>
+          <div>
+            <label>Expected completion</label>
+            <input type="date" name="expectedCompletion" />
+          </div>
+          <div>
+            <label>Comments</label>
+            <textarea name="comments" placeholder="Anything else worth noting"></textarea>
           </div>
         </div>
-        <div>
-          <label>Is this a quick action or a longer project?</label>
-          <div class="type-toggle">
-            <button type="button" class="active" data-type="action">Action</button>
-            <button type="button" data-type="project">Project</button>
-          </div>
-          <input type="hidden" name="type" value="action" />
-        </div>
-        <div>
-          <label>Expected completion (optional)</label>
-          <input type="date" name="expectedCompletion" />
-        </div>
-        <div>
-          <label>Comments</label>
-          <textarea name="comments" placeholder="Anything else worth noting"></textarea>
-        </div>
+
         <div class="error-banner" id="error-banner"></div>
         <div class="submit-row">
           <button class="btn btn-primary" type="submit" id="submit-btn">Submit report</button>
